@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aleyna & Onur - Dondurma Macerası</title>
+    <title>Aleyna & Onur - Dondurma Macerası v3</title>
     <style>
         * {
             margin: 0;
@@ -174,7 +174,7 @@
     </div>
 
     <h1>Aleyna & Onur 🍦</h1>
-    <p class="subtitle">Dondurma Macerası 💕</p>
+    <p class="subtitle">Dondurma Macerası 💕 <span style="font-size: 0.7em; color: #c2185b;">v3</span></p>
 
     <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
@@ -1095,6 +1095,10 @@
         }
 
         function checkCollisions() {
+            // Karakter yardımlaşma - birbirinin üstüne çıkabilme
+            checkPlayerCollision(player1, player2);
+            checkPlayerCollision(player2, player1);
+
             // Dondurma toplama
             for (let iceCream of iceCreams) {
                 if (!iceCream.collected) {
@@ -1122,6 +1126,18 @@
 
                 if (player1.atDoor && player2.atDoor) {
                     levelComplete();
+                }
+            }
+        }
+
+        // Karakter çarpışma ve yardımlaşma
+        function checkPlayerCollision(p1, p2) {
+            if (p1.collidesWith(p2)) {
+                // p1, p2'nin üstüne düşüyorsa
+                if (p1.velY > 0 && p1.y + p1.height - p1.velY <= p2.y + 10) {
+                    p1.y = p2.y - p1.height;
+                    p1.velY = 0;
+                    p1.onGround = true;
                 }
             }
         }
