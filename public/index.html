@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aleyna & Onur - Dondurma Macerası v5</title>
+    <title>Aleyna & Onur - Dondurma Macerası v6</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         * {
@@ -274,7 +274,7 @@
     <div id="loginScreen" class="screen">
         <div class="heart">💕</div>
         <h1>Aleyna & Onur</h1>
-        <p class="subtitle">Dondurma Macerası <span style="font-size: 0.7em; color: #c2185b;">v5</span></p>
+        <p class="subtitle">Dondurma Macerası <span style="font-size: 0.7em; color: #c2185b;">v6</span></p>
 
         <div class="login-box">
             <h2>Giriş Yap</h2>
@@ -335,7 +335,7 @@
     <!-- Game Screen -->
     <div id="gameScreen" class="hidden">
         <h1>Aleyna & Onur 🍦</h1>
-        <p class="subtitle">Dondurma Macerası 💕 <span style="font-size: 0.7em; color: #c2185b;">v5</span></p>
+        <p class="subtitle">Dondurma Macerası 💕 <span style="font-size: 0.7em; color: #c2185b;">v6</span></p>
 
         <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
@@ -532,11 +532,23 @@
 
             localPlayer.score = 0;
             remotePlayer.score = 0;
+            localPlayer.atDoor = false;
+            remotePlayer.atDoor = false;
+            localPlayer.velX = 0;
+            localPlayer.velY = 0;
+            remotePlayer.velX = 0;
+            remotePlayer.velY = 0;
+
+            // Kalpleri temizle
+            heartParticles = [];
 
             updateScoreDisplay();
 
-            gameRunning = true;
-            gameLoop();
+            // Oyunu başlat (çift çağrıyı önle)
+            if (!gameRunning) {
+                gameRunning = true;
+                gameLoop();
+            }
         }
 
         // Onur karakteri oluştur
@@ -728,18 +740,23 @@
             document.getElementById('targetScore').textContent = iceCreams.length;
         }
 
-        // Seviye tamamlandı
+        // Seviye tamamlandı - otomatik geçiş
         socket.on('levelComplete', (data) => {
-            document.getElementById('winScreen').classList.remove('hidden');
-            document.getElementById('winTitle').textContent = `Seviye ${currentLevel} Tamamlandı!`;
-            document.getElementById('winMessage').innerHTML =
-                `🧔 Onur: ${data.scores.onur} + 👩 Aleyna: ${data.scores.aleyna} = 🍦 ${data.scores.onur + data.scores.aleyna}`;
-            document.getElementById('nextBtn').textContent = 'Sonraki Seviye 💕';
-            document.getElementById('nextBtn').onclick = () => {
-                document.getElementById('winScreen').classList.add('hidden');
+            // Kısa mesaj göster ve otomatik geç
+            showLevelMessage(`Seviye ${currentLevel} Tamamlandı! 💕`);
+            setTimeout(() => {
                 initGame(data);
-            };
+            }, 1500);
         });
+
+        // Seviye geçiş mesajı
+        function showLevelMessage(text) {
+            const msg = document.createElement('div');
+            msg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(233,30,99,0.95);color:white;padding:30px 50px;border-radius:20px;font-size:1.5em;z-index:1000;text-align:center;';
+            msg.textContent = text;
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 1500);
+        }
 
         // Oyun tamamlandı
         socket.on('gameComplete', (data) => {
