@@ -27,170 +27,91 @@ let gameState = {
     doorOpen: false
 };
 
-// Seviye verileri - v3 zigzag tasarım
+// Seviye verileri - v4 basit ve tatlı
 const levelData = {
     1: {
+        // Seviye 1: Başlangıç - sadece yürüyüş
         platforms: [
-            { x: 0, y: 560, width: 1000, height: 40, type: 'grass' },
-            { x: 100, y: 480, width: 200, height: 25, type: 'normal' },
-            { x: 350, y: 430, width: 200, height: 25, type: 'normal' },
-            { x: 600, y: 480, width: 200, height: 25, type: 'normal' },
-            { x: 820, y: 420, width: 150, height: 25, type: 'normal' }
+            { x: 0, y: 560, width: 1000, height: 40, type: 'grass' }
         ],
         iceCreams: [
-            { x: 180, y: 430, type: 'strawberry' },
-            { x: 430, y: 380, type: 'vanilla' },
-            { x: 680, y: 430, type: 'mint' },
-            { x: 870, y: 370, type: 'chocolate' }
+            { x: 250, y: 510, type: 'strawberry' },
+            { x: 500, y: 510, type: 'vanilla' },
+            { x: 750, y: 510, type: 'chocolate' }
         ],
-        door: { x: 870, y: 350 },
+        door: { x: 900, y: 490 },
         onurStart: { x: 50, y: 500 },
         aleynaStart: { x: 100, y: 500 }
     },
     2: {
+        // Seviye 2: İlk zıplama
         platforms: [
             { x: 0, y: 560, width: 1000, height: 40, type: 'grass' },
-            { x: 50, y: 480, width: 180, height: 25, type: 'normal' },
-            { x: 280, y: 420, width: 180, height: 25, type: 'normal' },
-            { x: 500, y: 480, width: 180, height: 25, type: 'normal' },
-            { x: 720, y: 420, width: 180, height: 25, type: 'normal' },
-            { x: 100, y: 350, width: 180, height: 25, type: 'normal' },
-            { x: 350, y: 290, width: 180, height: 25, type: 'normal' },
-            { x: 580, y: 350, width: 180, height: 25, type: 'normal' },
-            { x: 800, y: 280, width: 150, height: 25, type: 'normal' },
-            { x: 200, y: 210, width: 200, height: 25, type: 'normal' },
-            { x: 500, y: 150, width: 200, height: 25, type: 'normal' },
-            { x: 750, y: 180, width: 150, height: 25, type: 'normal' }
+            { x: 400, y: 480, width: 200, height: 25, type: 'normal' }
         ],
         iceCreams: [
-            { x: 120, y: 430, type: 'strawberry' },
-            { x: 350, y: 370, type: 'chocolate' },
-            { x: 570, y: 430, type: 'vanilla' },
-            { x: 790, y: 370, type: 'mint' },
-            { x: 170, y: 300, type: 'blueberry' },
-            { x: 420, y: 240, type: 'rainbow' },
-            { x: 650, y: 300, type: 'strawberry' },
-            { x: 860, y: 230, type: 'chocolate' },
-            { x: 280, y: 160, type: 'vanilla' },
-            { x: 580, y: 100, type: 'rainbow' }
+            { x: 200, y: 510, type: 'strawberry' },
+            { x: 480, y: 430, type: 'mint' },
+            { x: 800, y: 510, type: 'chocolate' }
         ],
-        door: { x: 560, y: 80 },
-        onurStart: { x: 80, y: 500 },
-        aleynaStart: { x: 130, y: 500 }
+        door: { x: 900, y: 490 },
+        onurStart: { x: 50, y: 500 },
+        aleynaStart: { x: 100, y: 500 }
     },
     3: {
+        // Seviye 3: Merdiven
         platforms: [
             { x: 0, y: 560, width: 1000, height: 40, type: 'grass' },
-            { x: 0, y: 480, width: 180, height: 25, type: 'normal' },
-            { x: 220, y: 420, width: 180, height: 25, type: 'normal' },
-            { x: 450, y: 480, width: 180, height: 25, type: 'normal' },
-            { x: 680, y: 420, width: 180, height: 25, type: 'normal' },
-            { x: 880, y: 480, width: 120, height: 25, type: 'normal' },
-            { x: 100, y: 350, width: 180, height: 25, type: 'normal' },
-            { x: 330, y: 300, width: 180, height: 25, type: 'normal' },
-            { x: 560, y: 350, width: 180, height: 25, type: 'normal' },
-            { x: 780, y: 300, width: 180, height: 25, type: 'normal' },
-            { x: 50, y: 220, width: 180, height: 25, type: 'normal' },
-            { x: 280, y: 170, width: 200, height: 25, type: 'normal' },
-            { x: 530, y: 220, width: 180, height: 25, type: 'normal' },
-            { x: 750, y: 160, width: 200, height: 25, type: 'normal' },
-            { x: 400, y: 90, width: 200, height: 25, type: 'normal' }
+            { x: 200, y: 480, width: 180, height: 25, type: 'normal' },
+            { x: 450, y: 400, width: 180, height: 25, type: 'normal' },
+            { x: 700, y: 320, width: 180, height: 25, type: 'normal' }
         ],
         iceCreams: [
-            { x: 70, y: 430, type: 'strawberry' },
-            { x: 290, y: 370, type: 'chocolate' },
-            { x: 520, y: 430, type: 'vanilla' },
-            { x: 750, y: 370, type: 'mint' },
-            { x: 920, y: 430, type: 'blueberry' },
-            { x: 170, y: 300, type: 'rainbow' },
-            { x: 400, y: 250, type: 'strawberry' },
-            { x: 630, y: 300, type: 'chocolate' },
-            { x: 850, y: 250, type: 'vanilla' },
-            { x: 120, y: 170, type: 'mint' },
-            { x: 360, y: 120, type: 'blueberry' },
-            { x: 600, y: 170, type: 'rainbow' },
-            { x: 830, y: 110, type: 'strawberry' },
-            { x: 480, y: 40, type: 'rainbow' }
+            { x: 270, y: 430, type: 'strawberry' },
+            { x: 520, y: 350, type: 'blueberry' },
+            { x: 770, y: 270, type: 'rainbow' }
         ],
-        door: { x: 470, y: 20 },
-        onurStart: { x: 30, y: 500 },
-        aleynaStart: { x: 920, y: 500 }
+        door: { x: 750, y: 250 },
+        onurStart: { x: 50, y: 500 },
+        aleynaStart: { x: 100, y: 500 }
     },
     4: {
+        // Seviye 4: İki yol
         platforms: [
             { x: 0, y: 560, width: 1000, height: 40, type: 'grass' },
-            { x: 0, y: 480, width: 150, height: 25, type: 'normal' },
-            { x: 100, y: 400, width: 150, height: 25, type: 'normal' },
-            { x: 0, y: 320, width: 150, height: 25, type: 'normal' },
-            { x: 100, y: 240, width: 150, height: 25, type: 'normal' },
-            { x: 200, y: 160, width: 150, height: 25, type: 'normal' },
-            { x: 850, y: 480, width: 150, height: 25, type: 'normal' },
-            { x: 750, y: 400, width: 150, height: 25, type: 'normal' },
-            { x: 850, y: 320, width: 150, height: 25, type: 'normal' },
-            { x: 750, y: 240, width: 150, height: 25, type: 'normal' },
-            { x: 650, y: 160, width: 150, height: 25, type: 'normal' },
-            { x: 350, y: 450, width: 150, height: 25, type: 'normal' },
-            { x: 500, y: 380, width: 150, height: 25, type: 'normal' },
-            { x: 350, y: 300, width: 150, height: 25, type: 'normal' },
-            { x: 500, y: 220, width: 150, height: 25, type: 'normal' },
-            { x: 400, y: 100, width: 200, height: 25, type: 'normal' }
+            { x: 100, y: 450, width: 150, height: 25, type: 'normal' },
+            { x: 750, y: 450, width: 150, height: 25, type: 'normal' },
+            { x: 400, y: 350, width: 200, height: 25, type: 'normal' }
         ],
         iceCreams: [
-            { x: 60, y: 430, type: 'strawberry' },
-            { x: 160, y: 350, type: 'chocolate' },
-            { x: 60, y: 270, type: 'vanilla' },
-            { x: 160, y: 190, type: 'mint' },
-            { x: 260, y: 110, type: 'blueberry' },
-            { x: 910, y: 430, type: 'rainbow' },
-            { x: 810, y: 350, type: 'strawberry' },
-            { x: 910, y: 270, type: 'chocolate' },
-            { x: 810, y: 190, type: 'vanilla' },
-            { x: 710, y: 110, type: 'mint' },
-            { x: 410, y: 400, type: 'blueberry' },
-            { x: 560, y: 330, type: 'rainbow' },
-            { x: 480, y: 50, type: 'rainbow' }
+            { x: 150, y: 400, type: 'strawberry' },
+            { x: 480, y: 300, type: 'vanilla' },
+            { x: 800, y: 400, type: 'mint' }
         ],
-        door: { x: 470, y: 30 },
-        onurStart: { x: 30, y: 500 },
-        aleynaStart: { x: 920, y: 500 }
+        door: { x: 475, y: 280 },
+        onurStart: { x: 50, y: 500 },
+        aleynaStart: { x: 900, y: 500 }
     },
     5: {
+        // Seviye 5: Final - kalp buluşması
         platforms: [
             { x: 0, y: 560, width: 1000, height: 40, type: 'grass' },
-            { x: 50, y: 500, width: 200, height: 25, type: 'normal' },
-            { x: 300, y: 450, width: 200, height: 25, type: 'normal' },
-            { x: 550, y: 500, width: 200, height: 25, type: 'normal' },
-            { x: 800, y: 450, width: 150, height: 25, type: 'normal' },
-            { x: 700, y: 380, width: 180, height: 25, type: 'normal' },
-            { x: 450, y: 330, width: 200, height: 25, type: 'normal' },
-            { x: 200, y: 380, width: 180, height: 25, type: 'normal' },
-            { x: 50, y: 300, width: 150, height: 25, type: 'normal' },
-            { x: 150, y: 230, width: 180, height: 25, type: 'normal' },
-            { x: 380, y: 180, width: 200, height: 25, type: 'normal' },
-            { x: 620, y: 250, width: 180, height: 25, type: 'normal' },
-            { x: 830, y: 180, width: 150, height: 25, type: 'normal' },
-            { x: 650, y: 110, width: 180, height: 25, type: 'normal' },
-            { x: 400, y: 60, width: 200, height: 25, type: 'normal' }
+            { x: 100, y: 450, width: 150, height: 25, type: 'normal' },
+            { x: 750, y: 450, width: 150, height: 25, type: 'normal' },
+            { x: 300, y: 350, width: 150, height: 25, type: 'normal' },
+            { x: 550, y: 350, width: 150, height: 25, type: 'normal' },
+            { x: 400, y: 250, width: 200, height: 25, type: 'normal' }
         ],
         iceCreams: [
-            { x: 130, y: 450, type: 'strawberry' },
-            { x: 380, y: 400, type: 'chocolate' },
-            { x: 630, y: 450, type: 'vanilla' },
-            { x: 860, y: 400, type: 'mint' },
-            { x: 770, y: 330, type: 'blueberry' },
-            { x: 530, y: 280, type: 'rainbow' },
-            { x: 270, y: 330, type: 'strawberry' },
-            { x: 100, y: 250, type: 'chocolate' },
-            { x: 220, y: 180, type: 'vanilla' },
-            { x: 460, y: 130, type: 'mint' },
-            { x: 690, y: 200, type: 'blueberry' },
-            { x: 890, y: 130, type: 'rainbow' },
-            { x: 720, y: 60, type: 'strawberry' },
-            { x: 480, y: 10, type: 'rainbow' }
+            { x: 150, y: 400, type: 'strawberry' },
+            { x: 800, y: 400, type: 'chocolate' },
+            { x: 350, y: 300, type: 'vanilla' },
+            { x: 600, y: 300, type: 'mint' },
+            { x: 480, y: 200, type: 'rainbow' }
         ],
-        door: { x: 470, y: 490 },
-        onurStart: { x: 100, y: 500 },
-        aleynaStart: { x: 850, y: 500 }
+        door: { x: 475, y: 180 },
+        onurStart: { x: 50, y: 500 },
+        aleynaStart: { x: 900, y: 500 }
     }
 };
 
