@@ -902,17 +902,28 @@
             ctx.ellipse(cx + 7, cy + 13, 4, 5, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = '#5d4037';
+            ctx.fillStyle = '#8B4513';
             const eyeOffset = player.facingRight ? 1 : -1;
             ctx.beginPath();
             ctx.arc(cx - 7 + eyeOffset, cy + 13, 2.5, 0, Math.PI * 2);
             ctx.arc(cx + 7 + eyeOffset, cy + 13, 2.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Bıyık
+            // Bıyık (düz)
             ctx.fillStyle = '#1a1a1a';
             ctx.beginPath();
-            ctx.ellipse(cx, cy + 22, 8, 3, 0, 0, Math.PI);
+            ctx.moveTo(cx - 12, cy + 21);
+            ctx.lineTo(cx - 2, cy + 23);
+            ctx.lineTo(cx - 2, cy + 25);
+            ctx.lineTo(cx - 10, cy + 24);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(cx + 12, cy + 21);
+            ctx.lineTo(cx + 2, cy + 23);
+            ctx.lineTo(cx + 2, cy + 25);
+            ctx.lineTo(cx + 10, cy + 24);
+            ctx.closePath();
             ctx.fill();
 
             // Gülümseme
