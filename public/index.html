@@ -512,8 +512,8 @@
                 height: 60,
                 velX: 0,
                 velY: 0,
-                speed: 5,
-                jumpForce: 15,
+                speed: 3.5,
+                jumpForce: 17,
                 onGround: false,
                 name: 'Onur',
                 score: 0,
@@ -531,8 +531,8 @@
                 height: 60,
                 velX: 0,
                 velY: 0,
-                speed: 5,
-                jumpForce: 15,
+                speed: 3.5,
+                jumpForce: 17,
                 onGround: false,
                 name: 'Aleyna',
                 score: 0,
@@ -571,8 +571,8 @@
             player.x += player.velX;
             player.y += player.velY;
 
-            // Sürtünme
-            player.velX *= 0.85;
+            // Sürtünme (kayma efekti)
+            player.velX *= 0.92;
 
             // Platform çarpışması
             player.onGround = false;
