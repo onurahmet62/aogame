@@ -513,7 +513,7 @@
                 velX: 0,
                 velY: 0,
                 speed: 3.5,
-                jumpForce: 17,
+                jumpForce: 12,
                 onGround: false,
                 name: 'Onur',
                 score: 0,
@@ -532,7 +532,7 @@
                 velX: 0,
                 velY: 0,
                 speed: 3.5,
-                jumpForce: 17,
+                jumpForce: 12,
                 onGround: false,
                 name: 'Aleyna',
                 score: 0,
@@ -560,8 +560,8 @@
 
         // Oyuncu güncellemesi
         function updatePlayer(player) {
-            // Yerçekimi
-            player.velY += 0.6;
+            // Yerçekimi (doğal his)
+            player.velY += 0.45;
 
             // Yön belirleme
             if (player.velX > 0.5) player.facingRight = true;
