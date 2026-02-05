@@ -370,6 +370,41 @@
         let iceCreams = [];
         let door = null;
         let keys = {};
+        let heartParticles = [];
+        let lastHeartTime = 0;
+
+        // Kalp parçacık sınıfı
+        class HeartParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 10 + 8;
+                this.speedY = -Math.random() * 2 - 1;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.opacity = 1;
+                this.color = Math.random() > 0.5 ? '#ff69b4' : '#ff1493';
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.opacity -= 0.02;
+            }
+            draw() {
+                if (this.opacity <= 0) return;
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                const x = this.x, y = this.y, size = this.size;
+                ctx.moveTo(x, y + size/4);
+                ctx.bezierCurveTo(x, y, x - size/2, y, x - size/2, y + size/4);
+                ctx.bezierCurveTo(x - size/2, y + size/2, x, y + size*0.75, x, y + size);
+                ctx.bezierCurveTo(x, y + size*0.75, x + size/2, y + size/2, x + size/2, y + size/4);
+                ctx.bezierCurveTo(x + size/2, y, x, y, x, y + size/4);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
 
         // Canvas
         const canvas = document.getElementById('gameCanvas');
@@ -512,8 +547,8 @@
                 height: 60,
                 velX: 0,
                 velY: 0,
-                speed: 3.5,
-                jumpForce: 12,
+                speed: 1.5,
+                jumpForce: 14,
                 onGround: false,
                 name: 'Onur',
                 score: 0,
@@ -531,8 +566,8 @@
                 height: 60,
                 velX: 0,
                 velY: 0,
-                speed: 3.5,
-                jumpForce: 12,
+                speed: 1.5,
+                jumpForce: 14,
                 onGround: false,
                 name: 'Aleyna',
                 score: 0,
@@ -560,8 +595,8 @@
 
         // Oyuncu güncellemesi
         function updatePlayer(player) {
-            // Yerçekimi (doğal his)
-            player.velY += 0.45;
+            // Yerçekimi
+            player.velY += 0.5;
 
             // Yön belirleme
             if (player.velX > 0.5) player.facingRight = true;
@@ -571,8 +606,8 @@
             player.x += player.velX;
             player.y += player.velY;
 
-            // Sürtünme (kayma efekti)
-            player.velX *= 0.92;
+            // Sürtünme (hassas kontrol)
+            player.velX *= 0.4;
 
             // Platform çarpışması
             player.onGround = false;
@@ -1139,6 +1174,29 @@
             // Güncelleme
             updatePlayer(localPlayer);
 
+            // Karakter yardımlaşma - birbirinin üstüne çıkabilme
+            if (localPlayer && remotePlayer) {
+                checkPlayerCollision(localPlayer, remotePlayer);
+
+                // İki karakter yakınsa kalp oluştur
+                const dx = localPlayer.x - remotePlayer.x;
+                const dy = localPlayer.y - remotePlayer.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 80 && Date.now() - lastHeartTime > 100) {
+                    const midX = (localPlayer.x + remotePlayer.x) / 2 + 22;
+                    const midY = Math.min(localPlayer.y, remotePlayer.y) - 10;
+                    heartParticles.push(new HeartParticle(midX + (Math.random() - 0.5) * 30, midY));
+                    lastHeartTime = Date.now();
+                }
+            }
+
+            // Kalp parçacıklarını güncelle
+            heartParticles = heartParticles.filter(p => p.opacity > 0);
+            for (let particle of heartParticles) {
+                particle.update();
+            }
+
             // Çarpışma kontrolü
             checkCollisions();
 
@@ -1168,7 +1226,29 @@
             drawPlayer(remotePlayer);
             drawPlayer(localPlayer);
 
+            // Kalpleri çiz
+            for (let particle of heartParticles) {
+                particle.draw();
+            }
+
             requestAnimationFrame(gameLoop);
+        }
+
+        // Karakter çarpışma ve yardımlaşma
+        function checkPlayerCollision(p1, p2) {
+            if (!p1 || !p2) return;
+            const collides = p1.x < p2.x + p2.width &&
+                           p1.x + p1.width > p2.x &&
+                           p1.y < p2.y + p2.height &&
+                           p1.y + p1.height > p2.y;
+            if (collides) {
+                // p1, p2'nin üstüne düşüyorsa
+                if (p1.velY > 0 && p1.y + p1.height - p1.velY <= p2.y + 10) {
+                    p1.y = p2.y - p1.height;
+                    p1.velY = 0;
+                    p1.onGround = true;
+                }
+            }
         }
 
         // Canvas roundRect polyfill
