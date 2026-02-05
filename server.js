@@ -79,14 +79,16 @@ const levelData = {
         // Seviye 4: İki yol - kolay erişim
         platforms: [
             { x: 0, y: 560, width: 1000, height: 40, type: 'grass' },
-            { x: 100, y: 490, width: 180, height: 25, type: 'normal' },
-            { x: 720, y: 490, width: 180, height: 25, type: 'normal' },
-            { x: 400, y: 420, width: 200, height: 25, type: 'normal' }
+            { x: 150, y: 490, width: 180, height: 25, type: 'normal' },
+            { x: 670, y: 490, width: 180, height: 25, type: 'normal' },
+            { x: 350, y: 490, width: 100, height: 25, type: 'normal' },
+            { x: 550, y: 490, width: 100, height: 25, type: 'normal' },
+            { x: 420, y: 420, width: 160, height: 25, type: 'normal' }
         ],
         iceCreams: [
-            { x: 170, y: 440, type: 'strawberry' },
+            { x: 220, y: 440, type: 'strawberry' },
             { x: 480, y: 370, type: 'vanilla' },
-            { x: 790, y: 440, type: 'mint' }
+            { x: 740, y: 440, type: 'mint' }
         ],
         door: { x: 475, y: 350 },
         onurStart: { x: 50, y: 500 },
