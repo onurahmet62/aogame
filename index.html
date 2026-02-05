@@ -215,8 +215,8 @@
                 this.height = 60;
                 this.velX = 0;
                 this.velY = 0;
-                this.speed = 5;
-                this.jumpForce = 15;
+                this.speed = 2;
+                this.jumpForce = 17;
                 this.onGround = false;
                 this.name = 'Onur';
                 this.score = 0;
@@ -237,7 +237,7 @@
                 this.y += this.velY;
 
                 // Sürtünme
-                this.velX *= 0.85;
+                this.velX *= 0.5;
 
                 // Platform çarpışması
                 this.onGround = false;
@@ -421,8 +421,8 @@
                 this.height = 60;
                 this.velX = 0;
                 this.velY = 0;
-                this.speed = 5;
-                this.jumpForce = 15;
+                this.speed = 2;
+                this.jumpForce = 17;
                 this.onGround = false;
                 this.name = 'Aleyna';
                 this.score = 0;
@@ -443,7 +443,7 @@
                 this.y += this.velY;
 
                 // Sürtünme
-                this.velX *= 0.85;
+                this.velX *= 0.5;
 
                 // Platform çarpışması
                 this.onGround = false;
@@ -505,7 +505,7 @@
                 ctx.fill();
 
                 // Uzun saç - arka kısım (omuzlara dökülen)
-                ctx.fillStyle = '#c9a66b';
+                ctx.fillStyle = '#785d50';
                 ctx.beginPath();
                 ctx.moveTo(cx - 18, cy + 8);
                 ctx.quadraticCurveTo(cx - 22, cy + 35, cx - 15, cy + 50);
@@ -545,7 +545,7 @@
                 ctx.fill();
 
                 // Saç - kahverengi/sarı tonu
-                ctx.fillStyle = '#c9a66b';
+                ctx.fillStyle = '#785d50';
                 // Üst saç
                 ctx.beginPath();
                 ctx.ellipse(cx, cy + 3, 17, 12, 0, Math.PI, Math.PI * 2);
@@ -829,12 +829,52 @@
             }
         }
 
+        // Kalp parçacık sınıfı
+        class HeartParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 10 + 8;
+                this.speedY = -Math.random() * 2 - 1;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.opacity = 1;
+                this.color = Math.random() > 0.5 ? '#ff69b4' : '#ff1493';
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.opacity -= 0.02;
+            }
+
+            draw() {
+                if (this.opacity <= 0) return;
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                this.drawHeart(this.x, this.y, this.size);
+                ctx.restore();
+            }
+
+            drawHeart(x, y, size) {
+                ctx.beginPath();
+                ctx.moveTo(x, y + size/4);
+                ctx.bezierCurveTo(x, y, x - size/2, y, x - size/2, y + size/4);
+                ctx.bezierCurveTo(x - size/2, y + size/2, x, y + size*0.75, x, y + size);
+                ctx.bezierCurveTo(x, y + size*0.75, x + size/2, y + size/2, x + size/2, y + size/4);
+                ctx.bezierCurveTo(x + size/2, y, x, y, x, y + size/4);
+                ctx.fill();
+            }
+        }
+
         // Oyun değişkenleri
         let player1, player2;
         let platforms = [];
         let iceCreams = [];
         let door;
         let keys = {};
+        let heartParticles = [];
+        let lastHeartTime = 0;
 
         // Tuş dinleyicileri
         document.addEventListener('keydown', (e) => {
@@ -859,141 +899,180 @@
             const iceCreamTypes = ['strawberry', 'chocolate', 'vanilla', 'mint', 'blueberry', 'rainbow'];
 
             if (level === 1) {
-                // Basit giriş seviyesi
-                platforms.push(new Platform(100, 480, 150, 25));
-                platforms.push(new Platform(350, 420, 150, 25));
-                platforms.push(new Platform(600, 360, 150, 25));
-                platforms.push(new Platform(800, 300, 150, 25));
+                // Basit giriş seviyesi - merdiven şeklinde
+                platforms.push(new Platform(100, 480, 180, 25));
+                platforms.push(new Platform(320, 420, 180, 25));
+                platforms.push(new Platform(540, 360, 180, 25));
+                platforms.push(new Platform(760, 300, 180, 25));
 
-                iceCreams.push(new IceCream(160, 430, 'strawberry'));
-                iceCreams.push(new IceCream(410, 370, 'vanilla'));
-                iceCreams.push(new IceCream(660, 310, 'mint'));
-                iceCreams.push(new IceCream(860, 250, 'chocolate'));
+                iceCreams.push(new IceCream(170, 430, 'strawberry'));
+                iceCreams.push(new IceCream(390, 370, 'vanilla'));
+                iceCreams.push(new IceCream(610, 310, 'mint'));
+                iceCreams.push(new IceCream(830, 250, 'chocolate'));
 
-                door = new Door(900, canvas.height - 110);
+                door = new Door(880, canvas.height - 110);
                 player1 = new Onur(50, canvas.height - 100);
                 player2 = new Aleyna(100, canvas.height - 100);
             }
             else if (level === 2) {
-                // Zıplama seviyesi
-                platforms.push(new Platform(50, 450, 100, 25));
-                platforms.push(new Platform(200, 380, 100, 25));
-                platforms.push(new Platform(350, 310, 100, 25));
-                platforms.push(new Platform(200, 240, 100, 25));
-                platforms.push(new Platform(50, 170, 100, 25));
-                platforms.push(new Platform(200, 100, 200, 25));
+                // Zıplama seviyesi - iki taraflı tırmanış
+                // Sol taraf
+                platforms.push(new Platform(50, 480, 120, 25));
+                platforms.push(new Platform(50, 380, 120, 25));
+                platforms.push(new Platform(200, 430, 120, 25));
+                platforms.push(new Platform(200, 320, 120, 25));
+                platforms.push(new Platform(50, 250, 150, 25));
+                platforms.push(new Platform(230, 180, 180, 25));
 
-                platforms.push(new Platform(500, 450, 100, 25));
-                platforms.push(new Platform(650, 380, 100, 25));
-                platforms.push(new Platform(800, 310, 100, 25));
-                platforms.push(new Platform(650, 240, 100, 25));
-                platforms.push(new Platform(800, 170, 150, 25));
+                // Sağ taraf
+                platforms.push(new Platform(500, 480, 120, 25));
+                platforms.push(new Platform(650, 420, 120, 25));
+                platforms.push(new Platform(800, 350, 150, 25));
+                platforms.push(new Platform(650, 280, 120, 25));
+                platforms.push(new Platform(500, 210, 120, 25));
 
-                iceCreams.push(new IceCream(80, 400, 'strawberry'));
-                iceCreams.push(new IceCream(230, 330, 'blueberry'));
-                iceCreams.push(new IceCream(380, 260, 'vanilla'));
-                iceCreams.push(new IceCream(230, 190, 'mint'));
-                iceCreams.push(new IceCream(280, 50, 'rainbow'));
+                // Orta köprü
+                platforms.push(new Platform(420, 130, 250, 25));
 
-                iceCreams.push(new IceCream(530, 400, 'chocolate'));
-                iceCreams.push(new IceCream(680, 330, 'strawberry'));
-                iceCreams.push(new IceCream(830, 260, 'vanilla'));
-                iceCreams.push(new IceCream(680, 190, 'blueberry'));
+                iceCreams.push(new IceCream(90, 430, 'strawberry'));
+                iceCreams.push(new IceCream(90, 330, 'blueberry'));
+                iceCreams.push(new IceCream(240, 380, 'vanilla'));
+                iceCreams.push(new IceCream(240, 270, 'mint'));
+                iceCreams.push(new IceCream(100, 200, 'rainbow'));
+                iceCreams.push(new IceCream(300, 130, 'chocolate'));
 
-                door = new Door(850, 100);
+                iceCreams.push(new IceCream(540, 430, 'strawberry'));
+                iceCreams.push(new IceCream(690, 370, 'vanilla'));
+                iceCreams.push(new IceCream(860, 300, 'blueberry'));
+                iceCreams.push(new IceCream(690, 230, 'mint'));
+                iceCreams.push(new IceCream(540, 160, 'rainbow'));
+
+                door = new Door(520, 60);
                 player1 = new Onur(50, canvas.height - 100);
                 player2 = new Aleyna(550, canvas.height - 100);
             }
             else if (level === 3) {
-                // Labirent seviyesi
-                platforms.push(new Platform(0, 450, 300, 25));
-                platforms.push(new Platform(400, 450, 600, 25));
-                platforms.push(new Platform(150, 350, 400, 25));
-                platforms.push(new Platform(650, 350, 200, 25));
-                platforms.push(new Platform(0, 250, 250, 25));
-                platforms.push(new Platform(350, 250, 300, 25));
-                platforms.push(new Platform(750, 250, 250, 25));
-                platforms.push(new Platform(100, 150, 300, 25));
-                platforms.push(new Platform(500, 150, 400, 25));
+                // Labirent seviyesi - daha bağlantılı platformlar
+                platforms.push(new Platform(0, 480, 250, 25));
+                platforms.push(new Platform(300, 480, 200, 25));
+                platforms.push(new Platform(550, 480, 200, 25));
+                platforms.push(new Platform(800, 480, 200, 25));
+
+                platforms.push(new Platform(100, 390, 200, 25));
+                platforms.push(new Platform(350, 390, 200, 25));
+                platforms.push(new Platform(600, 390, 200, 25));
+                platforms.push(new Platform(850, 390, 150, 25));
+
+                platforms.push(new Platform(0, 300, 200, 25));
+                platforms.push(new Platform(250, 300, 200, 25));
+                platforms.push(new Platform(500, 300, 200, 25));
+                platforms.push(new Platform(750, 300, 250, 25));
+
+                platforms.push(new Platform(100, 210, 250, 25));
+                platforms.push(new Platform(400, 210, 250, 25));
+                platforms.push(new Platform(700, 210, 250, 25));
+
+                platforms.push(new Platform(200, 120, 600, 25));
 
                 for (let i = 0; i < 12; i++) {
                     const type = iceCreamTypes[i % iceCreamTypes.length];
                     const positions = [
-                        [50, 400], [200, 400], [500, 400], [700, 400],
-                        [200, 300], [400, 300], [750, 300],
-                        [50, 200], [450, 200], [850, 200],
-                        [200, 100], [650, 100]
+                        [100, 430], [380, 430], [630, 430], [880, 430],
+                        [180, 340], [430, 340], [680, 340],
+                        [80, 250], [330, 250], [580, 250], [850, 250],
+                        [480, 70]
                     ];
                     iceCreams.push(new IceCream(positions[i][0], positions[i][1], type));
                 }
 
-                door = new Door(800, 80);
+                door = new Door(475, 50);
                 player1 = new Onur(50, canvas.height - 100);
                 player2 = new Aleyna(100, canvas.height - 100);
             }
             else if (level === 4) {
-                // Yüksek zıplama seviyesi
-                platforms.push(new Platform(50, 500, 80, 25));
-                platforms.push(new Platform(180, 430, 80, 25));
-                platforms.push(new Platform(310, 360, 80, 25));
-                platforms.push(new Platform(440, 290, 80, 25));
-                platforms.push(new Platform(570, 220, 80, 25));
-                platforms.push(new Platform(700, 150, 80, 25));
-                platforms.push(new Platform(830, 80, 120, 25));
+                // Çift yol seviyesi - iki karakter farklı yollardan gider
+                // Sol yol (Onur için)
+                platforms.push(new Platform(0, 480, 120, 25));
+                platforms.push(new Platform(80, 400, 100, 25));
+                platforms.push(new Platform(0, 320, 120, 25));
+                platforms.push(new Platform(80, 240, 100, 25));
+                platforms.push(new Platform(0, 160, 120, 25));
+                platforms.push(new Platform(150, 100, 150, 25));
 
-                platforms.push(new Platform(900, 500, 80, 25));
-                platforms.push(new Platform(770, 430, 80, 25));
-                platforms.push(new Platform(640, 360, 80, 25));
-                platforms.push(new Platform(510, 290, 80, 25));
+                // Sağ yol (Aleyna için)
+                platforms.push(new Platform(880, 480, 120, 25));
+                platforms.push(new Platform(820, 400, 100, 25));
+                platforms.push(new Platform(880, 320, 120, 25));
+                platforms.push(new Platform(820, 240, 100, 25));
+                platforms.push(new Platform(880, 160, 120, 25));
+                platforms.push(new Platform(700, 100, 150, 25));
 
-                for (let i = 0; i < 10; i++) {
+                // Orta buluşma noktası
+                platforms.push(new Platform(350, 450, 300, 25));
+                platforms.push(new Platform(400, 350, 200, 25));
+                platforms.push(new Platform(350, 250, 300, 25));
+                platforms.push(new Platform(400, 150, 200, 25));
+                platforms.push(new Platform(380, 50, 240, 25));
+
+                for (let i = 0; i < 12; i++) {
                     const type = iceCreamTypes[i % iceCreamTypes.length];
                     const positions = [
-                        [70, 450], [200, 380], [330, 310], [460, 240], [590, 170], [720, 100],
-                        [920, 450], [790, 380], [660, 310], [530, 240]
+                        [40, 430], [110, 350], [40, 270], [110, 190], [200, 50],
+                        [920, 430], [850, 350], [920, 270], [850, 190], [750, 50],
+                        [480, 400], [480, 200]
                     ];
                     iceCreams.push(new IceCream(positions[i][0], positions[i][1], type));
                 }
 
-                door = new Door(860, 10);
-                player1 = new Onur(50, canvas.height - 100);
+                door = new Door(475, canvas.height - 110);
+                player1 = new Onur(30, canvas.height - 100);
                 player2 = new Aleyna(920, canvas.height - 100);
             }
             else if (level === 5) {
-                // Final seviyesi - Kalp şeklinde
-                platforms.push(new Platform(100, 400, 100, 25));
-                platforms.push(new Platform(800, 400, 100, 25));
-                platforms.push(new Platform(50, 300, 100, 25));
-                platforms.push(new Platform(850, 300, 100, 25));
-                platforms.push(new Platform(100, 200, 100, 25));
-                platforms.push(new Platform(800, 200, 100, 25));
-                platforms.push(new Platform(200, 120, 150, 25));
-                platforms.push(new Platform(650, 120, 150, 25));
-                platforms.push(new Platform(400, 80, 200, 25));
-                platforms.push(new Platform(300, 180, 100, 25));
-                platforms.push(new Platform(600, 180, 100, 25));
+                // Final seviyesi - Kalp şeklinde, daha erişilebilir
+                // Alt kısım
+                platforms.push(new Platform(420, 520, 160, 25));
+
+                // Kalbin alt ucu
+                platforms.push(new Platform(450, 440, 100, 25));
+                platforms.push(new Platform(350, 380, 120, 25));
+                platforms.push(new Platform(530, 380, 120, 25));
+
+                // Kalbin ortası
+                platforms.push(new Platform(250, 310, 150, 25));
+                platforms.push(new Platform(600, 310, 150, 25));
                 platforms.push(new Platform(400, 280, 200, 25));
-                platforms.push(new Platform(450, 380, 100, 25));
-                platforms.push(new Platform(450, 480, 100, 25));
+
+                // Kalbin üst kısmı - sol
+                platforms.push(new Platform(100, 240, 150, 25));
+                platforms.push(new Platform(50, 170, 150, 25));
+                platforms.push(new Platform(130, 100, 150, 25));
+                platforms.push(new Platform(280, 60, 120, 25));
+
+                // Kalbin üst kısmı - sağ
+                platforms.push(new Platform(750, 240, 150, 25));
+                platforms.push(new Platform(800, 170, 150, 25));
+                platforms.push(new Platform(720, 100, 150, 25));
+                platforms.push(new Platform(600, 60, 120, 25));
+
+                // Üst orta (kapı için)
+                platforms.push(new Platform(400, 30, 200, 25));
 
                 for (let i = 0; i < 15; i++) {
                     const type = iceCreamTypes[i % iceCreamTypes.length];
                     const positions = [
-                        [130, 350], [830, 350],
-                        [80, 250], [880, 250],
-                        [130, 150], [830, 150],
-                        [250, 70], [700, 70],
-                        [480, 30],
-                        [330, 130], [630, 130],
-                        [480, 230],
-                        [480, 330],
-                        [480, 430],
-                        [480, 510]
+                        [480, 470],
+                        [480, 390], [390, 330], [570, 330],
+                        [310, 260], [660, 260], [480, 230],
+                        [150, 190], [850, 190],
+                        [100, 120], [780, 120],
+                        [180, 50], [650, 50],
+                        [320, 10], [640, 10]
                     ];
                     iceCreams.push(new IceCream(positions[i][0], positions[i][1], type));
                 }
 
-                door = new Door(475, 10);
+                door = new Door(475, canvas.height - 110);
                 player1 = new Onur(50, canvas.height - 100);
                 player2 = new Aleyna(900, canvas.height - 100);
             }
@@ -1130,6 +1209,25 @@
             player1.update(platforms);
             player2.update(platforms);
 
+            // İki karakter yakınsa kalp oluştur
+            const dx = player1.x - player2.x;
+            const dy = player1.y - player2.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 80 && Date.now() - lastHeartTime > 100) {
+                const midX = (player1.x + player2.x) / 2 + 22;
+                const midY = Math.min(player1.y, player2.y) - 10;
+                heartParticles.push(new HeartParticle(midX + (Math.random() - 0.5) * 30, midY));
+                lastHeartTime = Date.now();
+            }
+
+            // Kalp parçacıklarını güncelle ve çiz
+            heartParticles = heartParticles.filter(p => p.opacity > 0);
+            for (let particle of heartParticles) {
+                particle.update();
+                particle.draw();
+            }
+
             // Çarpışma kontrolü
             checkCollisions();
 
@@ -1146,6 +1244,11 @@
 
             player1.draw();
             player2.draw();
+
+            // Kalpleri karakterlerin üstüne çiz
+            for (let particle of heartParticles) {
+                particle.draw();
+            }
 
             requestAnimationFrame(gameLoop);
         }
