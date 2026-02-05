@@ -396,8 +396,10 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server http://localhost:${PORT} adresinde çalışıyor`);
+const HOST = '0.0.0.0';
+
+server.listen(PORT, HOST, () => {
+    console.log(`Server ${HOST}:${PORT} adresinde çalışıyor`);
     console.log('');
     console.log('Kullanıcılar:');
     console.log('  Aleyna - Şifre: onur');
