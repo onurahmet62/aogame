@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aleyna & Onur - Dondurma Macerası</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 50%, #f48fb1 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Comic Sans MS', 'Segoe UI', cursive;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #c2185b;
+            text-shadow: 3px 3px 0 #fff, 4px 4px 0 #f48fb1;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #e91e63;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        #gameCanvas {
+            border: 5px solid #e91e63;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(233, 30, 99, 0.3);
+            background: #fff5f8;
+        }
+
+        .info-panel {
+            display: flex;
+            gap: 40px;
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(233, 30, 99, 0.2);
+        }
+
+        .player-info {
+            text-align: center;
+        }
+
+        .player-info h3 {
+            color: #c2185b;
+            margin-bottom: 5px;
+        }
+
+        .score-display {
+            font-size: 1.3em;
+            color: #e91e63;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(252, 228, 236, 0.98);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .heart {
+            color: #e91e63;
+            font-size: 3em;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #e91e63, #f48fb1);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 5px 20px rgba(233, 30, 99, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(233, 30, 99, 0.5);
+        }
+
+        /* Login Screen */
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(233, 30, 99, 0.3);
+            text-align: center;
+        }
+
+        .login-box h2 {
+            color: #c2185b;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            color: #880e4f;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f48fb1;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #e91e63;
+        }
+
+        .error-msg {
+            color: #d32f2f;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        /* Waiting Screen */
+        .waiting-animation {
+            display: flex;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .waiting-dot {
+            width: 15px;
+            height: 15px;
+            background: #e91e63;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .waiting-dot:nth-child(1) { animation-delay: -0.32s; }
+        .waiting-dot:nth-child(2) { animation-delay: -0.16s; }
+        .waiting-dot:nth-child(3) { animation-delay: 0; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .online-status {
+            display: flex;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .player-status {
+            padding: 15px 25px;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.5);
+        }
+
+        .player-status.online {
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid #4caf50;
+        }
+
+        .player-status.offline {
+            background: rgba(158, 158, 158, 0.2);
+            border: 2px solid #9e9e9e;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .online .status-indicator {
+            background: #4caf50;
+        }
+
+        .offline .status-indicator {
+            background: #9e9e9e;
+        }
+
+        /* Win Screen */
+        .win-message {
+            font-size: 1.8em;
+            color: #c2185b;
+            text-align: center;
+            margin: 20px;
+            line-height: 1.6;
+        }
+
+        .level-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 15px;
+            color: #c2185b;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(233, 30, 99, 0.2);
+            z-index: 50;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(233, 30, 99, 0.2);
+            z-index: 50;
+        }
+
+        .connection-status.connected {
+            color: #4caf50;
+        }
+
+        .connection-status.disconnected {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen">
+        <div class="heart">💕</div>
+        <h1>Aleyna & Onur</h1>
+        <p class="subtitle">Dondurma Macerası</p>
+
+        <div class="login-box">
+            <h2>Giriş Yap</h2>
+            <div class="input-group">
+                <label>Kullanıcı Adı</label>
+                <input type="text" id="username" placeholder="Aleyna veya Onur">
+            </div>
+            <div class="input-group">
+                <label>Şifre</label>
+                <input type="text" id="password" placeholder="Şifreni gir" autocomplete="off">
+            </div>
+            <div id="errorMsg" class="error-msg hidden"></div>
+            <button class="btn" onclick="login()">Giriş Yap</button>
+        </div>
+    </div>
+
+    <!-- Waiting Screen -->
+    <div id="waitingScreen" class="screen hidden">
+        <div class="heart">💕</div>
+        <h1>Hoş Geldin <span id="welcomeName"></span>!</h1>
+
+        <div class="waiting-animation">
+            <div class="waiting-dot"></div>
+            <div class="waiting-dot"></div>
+            <div class="waiting-dot"></div>
+        </div>
+
+        <p class="subtitle" id="waitingText">Diğer oyuncu bekleniyor...</p>
+
+        <div class="online-status">
+            <div id="onurStatus" class="player-status offline">
+                <span class="status-indicator"></span>
+                Onur
+            </div>
+            <div id="aleynaStatus" class="player-status offline">
+                <span class="status-indicator"></span>
+                Aleyna
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Screen -->
+    <div id="winScreen" class="screen hidden">
+        <div class="heart">💕</div>
+        <h1 id="winTitle">Tebrikler!</h1>
+        <div class="win-message" id="winMessage"></div>
+        <button class="btn" id="nextBtn" onclick="requestNextLevel()">Sonraki Seviye</button>
+    </div>
+
+    <!-- Disconnected Screen -->
+    <div id="disconnectedScreen" class="screen hidden">
+        <div class="heart" style="filter: grayscale(100%);">💔</div>
+        <h1>Bağlantı Koptu</h1>
+        <p class="subtitle" id="disconnectReason">Diğer oyuncu ayrıldı</p>
+        <button class="btn" onclick="location.reload()">Tekrar Bağlan</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="hidden">
+        <h1>Aleyna & Onur 🍦</h1>
+        <p class="subtitle">Dondurma Macerası 💕</p>
+
+        <canvas id="gameCanvas" width="1000" height="600"></canvas>
+
+        <div class="info-panel">
+            <div class="player-info">
+                <h3>🧔 Onur</h3>
+                <div class="score-display">🍦 <span id="score1">0</span></div>
+            </div>
+            <div class="player-info">
+                <h3>👩 Aleyna</h3>
+                <div class="score-display">🍦 <span id="score2">0</span></div>
+            </div>
+            <div class="player-info">
+                <h3>🎯 Toplam</h3>
+                <div class="score-display">🍦 <span id="totalScore">0</span> / <span id="targetScore">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="level-indicator hidden" id="levelIndicator">Seviye: <span id="levelNum">1</span></div>
+    <div class="connection-status connected" id="connectionStatus">Bağlı</div>
+
+    <script>
+        // Socket.io bağlantısı
+        const socket = io();
+
+        // Oyun değişkenleri
+        let myUsername = null;
+        let gameRunning = false;
+        let currentLevel = 1;
+        let platforms = [];
+        let iceCreams = [];
+        let door = null;
+        let keys = {};
+
+        // Canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Oyuncular
+        let localPlayer = null;
+        let remotePlayer = null;
+
+        // Bağlantı durumu
+        socket.on('connect', () => {
+            document.getElementById('connectionStatus').textContent = 'Bağlı';
+            document.getElementById('connectionStatus').className = 'connection-status connected';
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById('connectionStatus').textContent = 'Bağlantı Yok';
+            document.getElementById('connectionStatus').className = 'connection-status disconnected';
+        });
+
+        // Giriş fonksiyonu
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                showError('Lütfen tüm alanları doldurun!');
+                return;
+            }
+
+            socket.emit('login', { username, password });
+        }
+
+        // Enter tuşu ile giriş
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('username').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('password').focus();
+        });
+
+        function showError(msg) {
+            const errorEl = document.getElementById('errorMsg');
+            errorEl.textContent = msg;
+            errorEl.classList.remove('hidden');
+        }
+
+        // Socket olayları
+        socket.on('loginSuccess', (data) => {
+            myUsername = data.username;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('waitingScreen').classList.remove('hidden');
+            document.getElementById('welcomeName').textContent =
+                myUsername.charAt(0).toUpperCase() + myUsername.slice(1);
+
+            // Kendi durumunu güncelle
+            updatePlayerStatus(myUsername, true);
+        });
+
+        socket.on('loginError', (msg) => {
+            showError(msg);
+        });
+
+        socket.on('waitingForPlayer', () => {
+            document.getElementById('waitingText').textContent = 'Diğer oyuncu bekleniyor...';
+        });
+
+        socket.on('playerJoined', (data) => {
+            updatePlayerStatus(data.username, true);
+        });
+
+        socket.on('playerLeft', (data) => {
+            gameRunning = false;
+            document.getElementById('disconnectReason').textContent =
+                `${data.username.charAt(0).toUpperCase() + data.username.slice(1)} oyundan ayrıldı`;
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('winScreen').classList.add('hidden');
+            document.getElementById('disconnectedScreen').classList.remove('hidden');
+            document.getElementById('levelIndicator').classList.add('hidden');
+        });
+
+        function updatePlayerStatus(username, online) {
+            const statusEl = document.getElementById(username + 'Status');
+            if (statusEl) {
+                statusEl.className = 'player-status ' + (online ? 'online' : 'offline');
+            }
+        }
+
+        // Oyun başlangıcı
+        socket.on('gameStart', (data) => {
+            document.getElementById('waitingScreen').classList.add('hidden');
+            document.getElementById('winScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('levelIndicator').classList.remove('hidden');
+
+            initGame(data);
+        });
+
+        function initGame(data) {
+            currentLevel = data.level;
+            document.getElementById('levelNum').textContent = currentLevel;
+
+            // Platformları yükle
+            platforms = data.levelData.platforms;
+
+            // Dondurmaları yükle
+            iceCreams = data.iceCreams;
+
+            // Kapıyı yükle
+            door = {
+                ...data.levelData.door,
+                width: 50,
+                height: 70,
+                open: false
+            };
+
+            // Oyuncuları oluştur
+            if (myUsername === 'onur') {
+                localPlayer = createOnur(data.levelData.onurStart.x, data.levelData.onurStart.y);
+                remotePlayer = createAleyna(data.levelData.aleynaStart.x, data.levelData.aleynaStart.y);
+            } else {
+                localPlayer = createAleyna(data.levelData.aleynaStart.x, data.levelData.aleynaStart.y);
+                remotePlayer = createOnur(data.levelData.onurStart.x, data.levelData.onurStart.y);
+            }
+
+            localPlayer.score = 0;
+            remotePlayer.score = 0;
+
+            updateScoreDisplay();
+
+            gameRunning = true;
+            gameLoop();
+        }
+
+        // Onur karakteri oluştur
+        function createOnur(x, y) {
+            return {
+                x, y,
+                width: 45,
+                height: 60,
+                velX: 0,
+                velY: 0,
+                speed: 5,
+                jumpForce: 15,
+                onGround: false,
+                name: 'Onur',
+                score: 0,
+                atDoor: false,
+                facingRight: true,
+                type: 'onur'
+            };
+        }
+
+        // Aleyna karakteri oluştur
+        function createAleyna(x, y) {
+            return {
+                x, y,
+                width: 45,
+                height: 60,
+                velX: 0,
+                velY: 0,
+                speed: 5,
+                jumpForce: 15,
+                onGround: false,
+                name: 'Aleyna',
+                score: 0,
+                atDoor: false,
+                facingRight: true,
+                type: 'aleyna'
+            };
+        }
+
+        // Tuş dinleyicileri - sadece oyun aktifken çalışsın
+        document.addEventListener('keydown', (e) => {
+            // Input alanındaysa engelleme
+            if (e.target.tagName === 'INPUT') return;
+
+            keys[e.code] = true;
+            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            keys[e.code] = false;
+        });
+
+        // Oyuncu güncellemesi
+        function updatePlayer(player) {
+            // Yerçekimi
+            player.velY += 0.6;
+
+            // Yön belirleme
+            if (player.velX > 0.5) player.facingRight = true;
+            if (player.velX < -0.5) player.facingRight = false;
+
+            // Hareket
+            player.x += player.velX;
+            player.y += player.velY;
+
+            // Sürtünme
+            player.velX *= 0.85;
+
+            // Platform çarpışması
+            player.onGround = false;
+            for (let platform of platforms) {
+                if (collidesWith(player, platform)) {
+                    if (player.velY > 0 && player.y + player.height - player.velY <= platform.y) {
+                        player.y = platform.y - player.height;
+                        player.velY = 0;
+                        player.onGround = true;
+                    }
+                    else if (player.velY < 0 && player.y - player.velY >= platform.y + platform.height) {
+                        player.y = platform.y + platform.height;
+                        player.velY = 0;
+                    }
+                    else if (player.velX < 0 && player.x - player.velX >= platform.x + platform.width) {
+                        player.x = platform.x + platform.width;
+                        player.velX = 0;
+                    }
+                    else if (player.velX > 0 && player.x + player.width - player.velX <= platform.x) {
+                        player.x = platform.x - player.width;
+                        player.velX = 0;
+                    }
+                }
+            }
+
+            // Ekran sınırları
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            if (player.y + player.height > canvas.height) {
+                player.y = canvas.height - player.height;
+                player.velY = 0;
+                player.onGround = true;
+            }
+            if (player.y < 0) player.y = 0;
+        }
+
+        function collidesWith(a, b) {
+            return a.x < b.x + b.width &&
+                   a.x + a.width > b.x &&
+                   a.y < b.y + b.height &&
+                   a.y + a.height > b.y;
+        }
+
+        function handleInput() {
+            // Her iki kontrol şeması da çalışsın
+            if (keys['KeyA'] || keys['ArrowLeft']) localPlayer.velX = -localPlayer.speed;
+            if (keys['KeyD'] || keys['ArrowRight']) localPlayer.velX = localPlayer.speed;
+            if ((keys['Space'] || keys['KeyW'] || keys['ArrowUp']) && localPlayer.onGround) {
+                localPlayer.velY = -localPlayer.jumpForce;
+                localPlayer.onGround = false;
+            }
+        }
+
+        function checkCollisions() {
+            // Dondurma toplama
+            for (let iceCream of iceCreams) {
+                if (!iceCream.collected && collidesWith(localPlayer, {
+                    x: iceCream.x,
+                    y: iceCream.y,
+                    width: 30,
+                    height: 45
+                })) {
+                    socket.emit('collectIceCream', { id: iceCream.id });
+                }
+            }
+
+            // Kapıya ulaşma kontrolü
+            if (door.open) {
+                const atDoor = collidesWith(localPlayer, door);
+                if (atDoor !== localPlayer.atDoor) {
+                    localPlayer.atDoor = atDoor;
+                    socket.emit('atDoor', { atDoor });
+                }
+            }
+        }
+
+        // Socket: Dondurma toplandı
+        socket.on('iceCreamCollected', (data) => {
+            const iceCream = iceCreams.find(ic => ic.id === data.id);
+            if (iceCream) {
+                iceCream.collected = true;
+            }
+
+            door.open = data.doorOpen;
+
+            // Skorları güncelle
+            if (myUsername === 'onur') {
+                localPlayer.score = data.scores.onur;
+                remotePlayer.score = data.scores.aleyna;
+            } else {
+                localPlayer.score = data.scores.aleyna;
+                remotePlayer.score = data.scores.onur;
+            }
+
+            updateScoreDisplay();
+        });
+
+        // Socket: Uzak oyuncu hareketi
+        socket.on('playerMoved', (data) => {
+            if (remotePlayer) {
+                remotePlayer.x = data.x;
+                remotePlayer.y = data.y;
+                remotePlayer.velX = data.velX;
+                remotePlayer.velY = data.velY;
+                if (data.velX > 0.5) remotePlayer.facingRight = true;
+                if (data.velX < -0.5) remotePlayer.facingRight = false;
+            }
+        });
+
+        // Skor güncelleme
+        function updateScoreDisplay() {
+            const onurScore = myUsername === 'onur' ? localPlayer.score : remotePlayer.score;
+            const aleynaScore = myUsername === 'aleyna' ? localPlayer.score : remotePlayer.score;
+
+            document.getElementById('score1').textContent = onurScore;
+            document.getElementById('score2').textContent = aleynaScore;
+            document.getElementById('totalScore').textContent = onurScore + aleynaScore;
+            document.getElementById('targetScore').textContent = iceCreams.length;
+        }
+
+        // Seviye tamamlandı
+        socket.on('levelComplete', (data) => {
+            document.getElementById('winScreen').classList.remove('hidden');
+            document.getElementById('winTitle').textContent = `Seviye ${currentLevel} Tamamlandı!`;
+            document.getElementById('winMessage').innerHTML =
+                `🧔 Onur: ${data.scores.onur} + 👩 Aleyna: ${data.scores.aleyna} = 🍦 ${data.scores.onur + data.scores.aleyna}`;
+            document.getElementById('nextBtn').textContent = 'Sonraki Seviye 💕';
+            document.getElementById('nextBtn').onclick = () => {
+                document.getElementById('winScreen').classList.add('hidden');
+                initGame(data);
+            };
+        });
+
+        // Oyun tamamlandı
+        socket.on('gameComplete', (data) => {
+            gameRunning = false;
+            document.getElementById('winScreen').classList.remove('hidden');
+            document.getElementById('winTitle').textContent = 'Tebrikler!';
+            document.getElementById('winMessage').innerHTML =
+                `Tüm seviyeleri birlikte tamamladınız!<br><br>
+                🧔 Onur: ${data.scores.onur} + 👩 Aleyna: ${data.scores.aleyna} = 🍦 ${data.scores.onur + data.scores.aleyna}<br><br>
+                Birlikte her şeyin üstesinden gelebilirsiniz! 💕<br>
+                <span style="font-size: 0.8em; color: #e91e63;">Seni seviyorum!</span>`;
+            document.getElementById('nextBtn').textContent = 'Tekrar Oyna 💕';
+            document.getElementById('nextBtn').onclick = () => {
+                socket.emit('playAgain');
+            };
+        });
+
+        // Çizim fonksiyonları
+        function drawBackground() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#fff0f5');
+            gradient.addColorStop(0.5, '#ffe4ec');
+            gradient.addColorStop(1, '#ffb6c1');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Bulutlar
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            drawCloud(100, 50, 60);
+            drawCloud(300, 80, 40);
+            drawCloud(600, 40, 50);
+            drawCloud(800, 70, 45);
+        }
+
+        function drawCloud(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.8, y - size * 0.2, size * 0.7, 0, Math.PI * 2);
+            ctx.arc(x + size * 1.5, y, size * 0.8, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.5, y + size * 0.3, size * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawPlatform(platform) {
+            const gradient = ctx.createLinearGradient(platform.x, platform.y, platform.x, platform.y + platform.height);
+
+            if (platform.type === 'grass') {
+                gradient.addColorStop(0, '#90ee90');
+                gradient.addColorStop(0.3, '#98fb98');
+                gradient.addColorStop(1, '#8fbc8f');
+            } else {
+                gradient.addColorStop(0, '#ffb6c1');
+                gradient.addColorStop(0.3, '#ffc0cb');
+                gradient.addColorStop(1, '#ff69b4');
+            }
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.roundRect(platform.x, platform.y, platform.width, platform.height, 8);
+            ctx.fill();
+
+            if (platform.type === 'grass') {
+                ctx.fillStyle = '#32cd32';
+                for (let i = 0; i < platform.width; i += 15) {
+                    ctx.beginPath();
+                    ctx.moveTo(platform.x + i, platform.y);
+                    ctx.lineTo(platform.x + i + 5, platform.y - 8);
+                    ctx.lineTo(platform.x + i + 10, platform.y);
+                    ctx.fill();
+                }
+            }
+        }
+
+        function drawDoor() {
+            ctx.fillStyle = door.open ? '#ff69b4' : '#dda0dd';
+            ctx.beginPath();
+            ctx.roundRect(door.x, door.y, door.width, door.height, [15, 15, 0, 0]);
+            ctx.fill();
+
+            ctx.fillStyle = door.open ? '#ffb6c1' : '#d8bfd8';
+            ctx.beginPath();
+            ctx.roundRect(door.x + 5, door.y + 5, door.width - 10, door.height - 5, [10, 10, 0, 0]);
+            ctx.fill();
+
+            if (door.open) {
+                ctx.fillStyle = 'rgba(255, 182, 193, 0.5)';
+                ctx.beginPath();
+                ctx.arc(door.x + door.width/2, door.y + door.height/2, 40 + Math.sin(Date.now()/200) * 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawIceCream(iceCream) {
+            if (iceCream.collected) return;
+
+            const bobY = iceCream.y + Math.sin(Date.now() / 300 + iceCream.id) * 5;
+
+            // Külah
+            ctx.fillStyle = '#d4a574';
+            ctx.beginPath();
+            ctx.moveTo(iceCream.x + 5, bobY + 20);
+            ctx.lineTo(iceCream.x + 25, bobY + 20);
+            ctx.lineTo(iceCream.x + 15, bobY + 45);
+            ctx.closePath();
+            ctx.fill();
+
+            // Dondurma topları
+            const colors = getIceCreamColors(iceCream.type);
+            for (let i = 0; i < colors.length; i++) {
+                ctx.fillStyle = colors[i];
+                ctx.beginPath();
+                ctx.arc(iceCream.x + 15, bobY + 15 - i*10, 12, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.beginPath();
+                ctx.arc(iceCream.x + 11, bobY + 12 - i*10, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function getIceCreamColors(type) {
+            const types = {
+                'strawberry': ['#ff6b9d', '#ff8fab'],
+                'chocolate': ['#8b4513', '#a0522d'],
+                'vanilla': ['#fff8dc', '#fffacd'],
+                'mint': ['#98fb98', '#90ee90'],
+                'blueberry': ['#9370db', '#8a2be2'],
+                'rainbow': ['#ff6b9d', '#98fb98', '#87ceeb']
+            };
+            return types[type] || types['strawberry'];
+        }
+
+        function drawOnur(player) {
+            const cx = player.x + player.width/2;
+            const cy = player.y;
+
+            // Gölge
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.beginPath();
+            ctx.ellipse(cx, player.y + player.height + 3, 18, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Vücut
+            ctx.fillStyle = '#3d3d3d';
+            ctx.beginPath();
+            ctx.roundRect(player.x + 5, cy + 28, player.width - 10, 32, 8);
+            ctx.fill();
+
+            // Boyun
+            ctx.fillStyle = '#e8beac';
+            ctx.beginPath();
+            ctx.roundRect(cx - 6, cy + 22, 12, 10, 3);
+            ctx.fill();
+
+            // Kafa
+            ctx.fillStyle = '#e8beac';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 15, 16, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Saç
+            ctx.fillStyle = '#1a1a1a';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 2, 18, 12, 0, Math.PI, Math.PI * 2);
+            ctx.fill();
+
+            for (let i = 0; i < 8; i++) {
+                const angle = Math.PI + (i / 7) * Math.PI;
+                const rx = cx + Math.cos(angle) * 15;
+                const ry = cy + 5 + Math.sin(angle) * 8;
+                ctx.beginPath();
+                ctx.arc(rx, ry, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(cx - 10 + i * 5, cy - 3, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Kaşlar
+            ctx.beginPath();
+            ctx.ellipse(cx - 7, cy + 8, 5, 2, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(cx + 7, cy + 8, 5, 2, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Gözler
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.ellipse(cx - 7, cy + 13, 4, 5, 0, 0, Math.PI * 2);
+            ctx.ellipse(cx + 7, cy + 13, 4, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#5d4037';
+            const eyeOffset = player.facingRight ? 1 : -1;
+            ctx.beginPath();
+            ctx.arc(cx - 7 + eyeOffset, cy + 13, 2.5, 0, Math.PI * 2);
+            ctx.arc(cx + 7 + eyeOffset, cy + 13, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bıyık
+            ctx.fillStyle = '#1a1a1a';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 22, 8, 3, 0, 0, Math.PI);
+            ctx.fill();
+
+            // Gülümseme
+            ctx.strokeStyle = '#a1887f';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy + 26, 5, 0.1 * Math.PI, 0.9 * Math.PI);
+            ctx.stroke();
+
+            // İsim
+            ctx.fillStyle = 'rgba(61, 61, 61, 0.9)';
+            ctx.beginPath();
+            ctx.roundRect(cx - 18, cy - 18, 36, 14, 7);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Onur', cx, cy - 8);
+        }
+
+        function drawAleyna(player) {
+            const cx = player.x + player.width/2;
+            const cy = player.y;
+
+            // Gölge
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.beginPath();
+            ctx.ellipse(cx, player.y + player.height + 3, 18, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Uzun saç arka
+            ctx.fillStyle = '#c9a66b';
+            ctx.beginPath();
+            ctx.moveTo(cx - 18, cy + 8);
+            ctx.quadraticCurveTo(cx - 22, cy + 35, cx - 15, cy + 50);
+            ctx.lineTo(cx - 8, cy + 45);
+            ctx.quadraticCurveTo(cx - 15, cy + 30, cx - 14, cy + 10);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(cx + 18, cy + 8);
+            ctx.quadraticCurveTo(cx + 22, cy + 35, cx + 15, cy + 50);
+            ctx.lineTo(cx + 8, cy + 45);
+            ctx.quadraticCurveTo(cx + 15, cy + 30, cx + 14, cy + 10);
+            ctx.fill();
+
+            // Vücut
+            ctx.fillStyle = '#6b7c5e';
+            ctx.beginPath();
+            ctx.roundRect(player.x + 5, cy + 28, player.width - 10, 32, 8);
+            ctx.fill();
+
+            // Boyun
+            ctx.fillStyle = '#f5d5c8';
+            ctx.beginPath();
+            ctx.roundRect(cx - 5, cy + 22, 10, 10, 3);
+            ctx.fill();
+
+            // Kafa
+            ctx.fillStyle = '#f5d5c8';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 15, 15, 17, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Saç
+            ctx.fillStyle = '#c9a66b';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 3, 17, 12, 0, Math.PI, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(cx - 15, cy + 5);
+            ctx.quadraticCurveTo(cx - 20, cy + 15, cx - 17, cy + 25);
+            ctx.lineTo(cx - 14, cy + 20);
+            ctx.quadraticCurveTo(cx - 16, cy + 12, cx - 14, cy + 6);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(cx + 15, cy + 5);
+            ctx.quadraticCurveTo(cx + 20, cy + 15, cx + 17, cy + 25);
+            ctx.lineTo(cx + 14, cy + 20);
+            ctx.quadraticCurveTo(cx + 16, cy + 12, cx + 14, cy + 6);
+            ctx.fill();
+
+            // Kaşlar
+            ctx.fillStyle = '#8b7355';
+            ctx.beginPath();
+            ctx.ellipse(cx - 6, cy + 8, 4, 1.5, -0.1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(cx + 6, cy + 8, 4, 1.5, 0.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Gözler
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.ellipse(cx - 6, cy + 13, 4, 5, 0, 0, Math.PI * 2);
+            ctx.ellipse(cx + 6, cy + 13, 4, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#5b9bd5';
+            const eyeOffset = player.facingRight ? 1 : -1;
+            ctx.beginPath();
+            ctx.arc(cx - 6 + eyeOffset, cy + 13, 2.5, 0, Math.PI * 2);
+            ctx.arc(cx + 6 + eyeOffset, cy + 13, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Yanaklar
+            ctx.fillStyle = 'rgba(255, 182, 193, 0.5)';
+            ctx.beginPath();
+            ctx.ellipse(cx - 11, cy + 17, 4, 3, 0, 0, Math.PI * 2);
+            ctx.ellipse(cx + 11, cy + 17, 4, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Dudaklar
+            ctx.fillStyle = '#e8a0a0';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 22, 4, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // İsim
+            ctx.fillStyle = 'rgba(233, 30, 99, 0.9)';
+            ctx.beginPath();
+            ctx.roundRect(cx - 22, cy - 18, 44, 14, 7);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Aleyna', cx, cy - 8);
+        }
+
+        function drawPlayer(player) {
+            if (player.type === 'onur') {
+                drawOnur(player);
+            } else {
+                drawAleyna(player);
+            }
+        }
+
+        // Ana oyun döngüsü
+        let lastSendTime = 0;
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            // Arka plan
+            drawBackground();
+
+            // Input
+            handleInput();
+
+            // Güncelleme
+            updatePlayer(localPlayer);
+
+            // Çarpışma kontrolü
+            checkCollisions();
+
+            // Pozisyonu sunucuya gönder (60fps'de)
+            const now = Date.now();
+            if (now - lastSendTime > 16) {
+                socket.emit('playerMove', {
+                    x: localPlayer.x,
+                    y: localPlayer.y,
+                    velX: localPlayer.velX,
+                    velY: localPlayer.velY
+                });
+                lastSendTime = now;
+            }
+
+            // Çizim
+            for (let platform of platforms) {
+                drawPlatform(platform);
+            }
+
+            drawDoor();
+
+            for (let iceCream of iceCreams) {
+                drawIceCream(iceCream);
+            }
+
+            drawPlayer(remotePlayer);
+            drawPlayer(localPlayer);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Canvas roundRect polyfill
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                if (typeof r === 'number') {
+                    r = [r, r, r, r];
+                }
+                this.moveTo(x + r[0], y);
+                this.lineTo(x + w - r[1], y);
+                this.quadraticCurveTo(x + w, y, x + w, y + r[1]);
+                this.lineTo(x + w, y + h - r[2]);
+                this.quadraticCurveTo(x + w, y + h, x + w - r[2], y + h);
+                this.lineTo(x + r[3], y + h);
+                this.quadraticCurveTo(x, y + h, x, y + h - r[3]);
+                this.lineTo(x, y + r[0]);
+                this.quadraticCurveTo(x, y, x + r[0], y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>
